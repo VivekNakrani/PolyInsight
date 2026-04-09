@@ -903,6 +903,17 @@ select {
   box-shadow: none;
 }
 
+.kbd-hint {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  opacity: 0.7;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 2px 6px;
+  white-space: nowrap;
+}
+
 /* ── Loading ────────────────────────────────────────────────── */
 .analysis-loading {
   background: var(--bg-1);
@@ -1620,4 +1631,13 @@ select {
   50% {
     opacity: 1;
   }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
 }

@@ -451,7 +451,10 @@ function stopTimer() {
   return elapsed;
 }
 
-// ── Copy button ───────────────────────────────────────────────────────────────
+// ── Copy & Export ─────────────────────────────────────────────────────────────
+const exportMdBtn = document.getElementById('exportMdBtn');
+const exportPdfBtn = document.getElementById('exportPdfBtn');
+
 copyBtn.addEventListener('click', () => {
   if (!analysisRawText) return;
   navigator.clipboard.writeText(analysisRawText).then(() => {
@@ -463,6 +466,74 @@ copyBtn.addEventListener('click', () => {
     }, 2000);
   });
 });
+
+exportMdBtn.addEventListener('click', () => {
+  if (!analysisRawText || !selectedMarket) return;
+  const safeTitle = selectedMarket.question.replace(/[^a-z0-9]/gi, '_').substring(0, 40);
+  const filename = `PolyInsight_Report_${safeTitle}.md`;
+  const blob = new Blob([analysisRawText], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Exported as Markdown');
+});
+
+exportPdfBtn.addEventListener('click', () => {
+  if (!analysisRawText || !selectedMarket) return;
+  if (typeof html2pdf === 'undefined') {
+    showToast('PDF export library not loaded', 'error');
+    return;
+  }
+  
+  const safeTitle = selectedMarket.question.replace(/[^a-z0-9]/gi, '_').substring(0, 40);
+  const filename = `PolyInsight_Report_${safeTitle}.pdf`;
+  
+  const tempDiv = document.createElement('div');
+  tempDiv.className = 'markdown-body';
+  tempDiv.style.padding = '40px';
+  tempDiv.style.backgroundColor = '#ffffff';
+  tempDiv.style.color = '#0f172a';
+  tempDiv.innerHTML = `
+    <div style="margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px;">
+      <h1 style="color: #3b82f6; margin: 0 0 10px 0; font-size: 24px;">PolyInsight Intelligence Report</h1>
+      <h2 style="color: #334155; margin: 0; font-size: 18px; font-weight: normal;">${escapeHtml(selectedMarket.question)}</h2>
+      <p style="color: #64748b; font-size: 12px; margin-top: 10px;">Generated: ${new Date().toLocaleString()}</p>
+    </div>
+    <div style="font-size: 14px; line-height: 1.6;">
+      ${analysisText.innerHTML}
+    </div>
+  `;
+  
+  const opt = {
+    margin:       10,
+    filename:     filename,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true, logging: false },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  
+  exportPdfBtn.disabled = true;
+  const originalHtml = exportPdfBtn.innerHTML;
+  exportPdfBtn.innerHTML = '<i data-lucide="loader" width="13" height="13" class="spin"></i> Wait';
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+  
+  html2pdf().set(opt).from(tempDiv).save().then(() => {
+    showToast('Exported as PDF');
+    exportPdfBtn.disabled = false;
+    exportPdfBtn.innerHTML = originalHtml;
+  }).catch(err => {
+    console.error('PDF Export Error:', err);
+    showToast('PDF export failed', 'error');
+    exportPdfBtn.disabled = false;
+    exportPdfBtn.innerHTML = originalHtml;
+  });
+});
+
 
 // ── Analyze ───────────────────────────────────────────────────────────────────
 async function analyzeMarket() {
