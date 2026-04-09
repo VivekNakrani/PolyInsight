@@ -1,0 +1,9 @@
+# Dependencies
+node_modules/
+
+# Environment — contains your real API key, never commit this
+.env
+
+# OS artifacts
+.DS_Store
+Thumbs.db

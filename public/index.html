@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PolyInsight | Private Polymarket Intelligence</title>
+  <meta name="description"
+    content="Analyze Polymarket prediction markets through SolRouter's encrypted AI inference." />
+  <!-- Favicon: polygon shape -->
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%233b82f6'/><stop offset='1' stop-color='%238b5cf6'/></linearGradient></defs><polygon points='16,2 30,10 30,22 16,30 2,22 2,10' fill='url(%23g)'/><polygon points='16,7 25,12 25,20 16,25 7,20 7,12' fill='none' stroke='white' stroke-width='1.5' stroke-opacity='0.6'/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+
+      <a href="/" class="logo" title="PolyInsight Home">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#3b82f6" />
+              <stop offset="1" stop-color="#8b5cf6" />
+            </linearGradient>
+          </defs>
+          <polygon points="16,2 30,10 30,22 16,30 2,22 2,10" fill="url(#logoGrad)" />
+          <polygon points="16,7 25,12 25,20 16,25 7,20 7,12" fill="none" stroke="white" stroke-width="1.5"
+            stroke-opacity="0.7" />
+        </svg>
+        <span class="logo-text">PolyInsight</span>
+        <span class="logo-tag">BETA</span>
+      </a>
+
+      <div class="header-right">
+        <div class="header-status">
+          <span class="status-dot"></span>
+          <span class="status-label">Live</span>
+        </div>
+        <a href="https://solrouter.com" target="_blank" rel="noopener" class="header-link">
+          Powered by SolRouter
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <main class="layout">
+
+    <!-- Left: Market Browser -->
+    <section class="panel panel-left" aria-label="Market Browser">
+      <div class="panel-header">
+        <h2 class="panel-title">Live Markets</h2>
+        <div class="market-count" id="marketCount">--</div>
+      </div>
+
+      <div class="search-bar">
+        <i data-lucide="search" class="search-icon" width="14" height="14"></i>
+        <input type="search" id="searchInput" class="search-input" placeholder="Search"
+          aria-label="Search markets or paste a Polymarket URL" />
+        <div class="search-hint" id="urlHint" style="display:none">
+          <i data-lucide="link" width="11" height="11"></i>
+          Press Enter
+        </div>
+      </div>
+
+      <div class="filter-row" id="filterRow" role="group" aria-label="Category filters">
+        <button class="filter-chip active" data-category="All">All</button>
+        <button class="filter-chip" data-category="Politics">Politics</button>
+        <button class="filter-chip" data-category="Crypto">Crypto</button>
+        <button class="filter-chip" data-category="Tech">Tech</button>
+        <button class="filter-chip" data-category="Geopolitics">Geopolitics</button>
+        <button class="filter-chip" data-category="Economy">Economy</button>
+        <button class="filter-chip" data-category="Sports">Sports</button>
+      </div>
+
+      <div class="sort-row">
+        <label for="sortSelect" class="sort-label">Sort:</label>
+        <select id="sortSelect" class="sort-select">
+          <option value="volume24hr">24h Volume</option>
+          <option value="volume">Total Volume</option>
+          <option value="liquidity">Liquidity</option>
+        </select>
+      </div>
+
+      <div class="market-list" id="marketList" role="list" aria-label="Prediction markets">
+        <div class="loading-skeleton">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right: Analysis Panel -->
+    <section class="panel panel-right" aria-label="Market Analysis">
+
+      <!-- ── Hero / Empty State ── -->
+      <div id="emptyState" class="hero-state">
+        <div class="hero-bg-glow"></div>
+        <div class="hero-content">
+
+          <div class="hero-logo-mark">
+            <svg width="52" height="52" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="heroGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#3b82f6" />
+                  <stop offset="1" stop-color="#8b5cf6" />
+                </linearGradient>
+              </defs>
+              <polygon points="16,2 30,10 30,22 16,30 2,22 2,10" fill="url(#heroGrad)" opacity="0.15" />
+              <polygon points="16,2 30,10 30,22 16,30 2,22 2,10" fill="none" stroke="url(#heroGrad)"
+                stroke-width="1.5" />
+              <polygon points="16,7 25,12 25,20 16,25 7,20 7,12" fill="none" stroke="#3b82f6" stroke-width="1"
+                stroke-opacity="0.5" />
+            </svg>
+          </div>
+
+          <div class="hero-text">
+            <h1 class="hero-title">Private Market Intelligence</h1>
+            <p class="hero-sub">Query any Polymarket prediction market through SolRouter's encrypted AI inference. Your
+              research <em>never</em> leaves your device in plaintext.</p>
+          </div>
+
+          <div class="hero-features">
+            <div class="hero-feature">
+              <div class="hero-feature-icon">
+                <i data-lucide="lock" width="16" height="16"></i>
+              </div>
+              <div class="hero-feature-body">
+                <div class="hero-feature-title">End-to-end encrypted</div>
+                <div class="hero-feature-desc">Prompts encrypted via Arcium RescueCipher before leaving your device
+                </div>
+              </div>
+            </div>
+            <div class="hero-feature">
+              <div class="hero-feature-icon">
+                <i data-lucide="cpu" width="16" height="16"></i>
+              </div>
+              <div class="hero-feature-body">
+                <div class="hero-feature-title">TEE Secure Enclave</div>
+                <div class="hero-feature-desc">Processed inside AWS Nitro hardware-isolated environment</div>
+              </div>
+            </div>
+            <div class="hero-feature">
+              <div class="hero-feature-icon">
+                <i data-lucide="trending-up" width="16" height="16"></i>
+              </div>
+              <div class="hero-feature-body">
+                <div class="hero-feature-title">AI edge detection</div>
+                <div class="hero-feature-desc">Finds mispricings, catalysts, and risk factors in live markets</div>
+              </div>
+            </div>
+            <div class="hero-feature">
+              <div class="hero-feature-icon">
+                <i data-lucide="globe" width="16" height="16"></i>
+              </div>
+              <div class="hero-feature-body">
+                <div class="hero-feature-title">Deep Research mode</div>
+                <div class="hero-feature-desc">Optional web search + on-chain signals via SolRouter Agent</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-cta">
+            <i data-lucide="arrow-left" width="14" height="14"></i>
+            <span>Select a market on the left to begin</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── Analysis Panel (shown after market selected) ── -->
+      <div id="analysisPanel" class="analysis-panel hidden">
+
+        <!-- Market Hero Image -->
+        <div class="market-hero" id="marketHero">
+          <img id="selectedImage" src="" alt="" class="hero-image hidden" />
+          <div class="hero-overlay"></div>
+        </div>
+
+        <!-- Market Header -->
+        <div class="market-header" id="selectedMarketHeader">
+          <div class="market-category-badge" id="selectedCategory">--</div>
+          <h2 class="selected-question" id="selectedQuestion">--</h2>
+          <div class="market-meta-row">
+            <span class="meta-item" id="selectedClose">--</span>
+            <a class="meta-item meta-link" id="polymarketLink" href="#" target="_blank" rel="noopener">
+              View on Polymarket
+              <i data-lucide="external-link" width="11" height="11"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Odds Display -->
+        <div class="odds-container">
+          <div class="odds-bar-wrapper">
+            <div class="odds-bar" id="oddsBar">
+              <div class="odds-bar-yes" id="oddsBarYes"></div>
+              <div class="odds-bar-no" id="oddsBarNo"></div>
+            </div>
+          </div>
+          <div class="odds-labels">
+            <div class="odds-label yes">
+              <span class="odds-outcome">YES</span>
+              <span class="odds-pct" id="yesPct">--</span>
+            </div>
+            <div class="odds-label no">
+              <span class="odds-outcome">NO</span>
+              <span class="odds-pct" id="noPct">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat">
+            <div class="stat-label">24h Volume</div>
+            <div class="stat-value" id="stat24hVol">--</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Liquidity</div>
+            <div class="stat-value" id="statLiquidity">--</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">24h Change</div>
+            <div class="stat-value" id="stat24hChange">--</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Spread</div>
+            <div class="stat-value" id="statSpread">--</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">7d Volume</div>
+            <div class="stat-value" id="stat7dVol">--</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Total Volume</div>
+            <div class="stat-value" id="statTotalVol">--</div>
+          </div>
+        </div>
+
+        <!-- Intelligence Query Section -->
+        <div class="query-section">
+          <div class="query-header">
+            <div class="query-header-left">
+              <div class="query-lock-icon">
+                <i data-lucide="lock" width="14" height="14"></i>
+              </div>
+              <span class="query-label">PRIVATE INTELLIGENCE QUERY</span>
+            </div>
+            <div class="tool-toggle">
+              <label class="toggle-label" for="useToolsToggle">
+                <input type="checkbox" id="useToolsToggle" />
+                <span class="toggle-slider"></span>
+              </label>
+              <div class="toggle-info">
+                <span class="toggle-text" id="toggleText">Encrypted SDK</span>
+                <span class="toggle-desc" id="toggleDesc">E2E private inference</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Suggested Prompts -->
+          <div class="suggested-prompts" id="suggestedPrompts">
+            <div class="prompts-label">Suggested</div>
+            <div class="prompts-chips" id="promptChips"></div>
+          </div>
+
+          <textarea id="researchQuestion" class="query-input"
+            placeholder="Ask anything about this market... e.g. Is this market mispriced? What are the key catalysts?"
+            rows="3"></textarea>
+
+          <button id="analyzeBtn" class="btn btn-analyze">
+            <i data-lucide="send" width="15" height="15"></i>
+            <span class="btn-text">Analyze with SolRouter</span>
+          </button>
+        </div>
+
+        <!-- Animated Loading State -->
+        <div id="analysisLoading" class="analysis-loading hidden">
+          <div class="loading-orb-wrapper">
+            <div class="loading-orb">
+              <div class="orb-ring ring-1"></div>
+              <div class="orb-ring ring-2"></div>
+              <div class="orb-ring ring-3"></div>
+              <div class="orb-core"></div>
+            </div>
+          </div>
+          <div class="loading-meta">
+            <span class="loading-title" id="loadingTitle">Initializing...</span>
+            <span class="loading-timer" id="loadingTimer">0.0s</span>
+          </div>
+          <div class="loading-pipeline" id="loadingPipeline">
+            <div class="pipeline-step" id="step1">
+              <div class="step-icon"><i data-lucide="shield" width="18" height="18"></i></div>
+              <div class="step-body">
+                <div class="step-name">Encrypting prompt</div>
+                <div class="step-detail">Client-side via Arcium RescueCipher</div>
+              </div>
+              <div class="step-status"></div>
+            </div>
+            <div class="pipeline-step" id="step2">
+              <div class="step-icon"><i data-lucide="server" width="18" height="18"></i></div>
+              <div class="step-body">
+                <div class="step-name">Routing to TEE Enclave</div>
+                <div class="step-detail">AWS Nitro hardware-isolated environment</div>
+              </div>
+              <div class="step-status"></div>
+            </div>
+            <div class="pipeline-step" id="step3">
+              <div class="step-icon"><i data-lucide="sparkles" width="18" height="18"></i></div>
+              <div class="step-body">
+                <div class="step-name" id="step3Name">Processing with AI</div>
+                <div class="step-detail" id="step3Detail">Synthesizing market signals...</div>
+              </div>
+              <div class="step-status"></div>
+            </div>
+            <div class="pipeline-step" id="step4">
+              <div class="step-icon"><i data-lucide="unlock" width="18" height="18"></i></div>
+              <div class="step-body">
+                <div class="step-name">Decrypting response</div>
+                <div class="step-detail">Only your device holds the key</div>
+              </div>
+              <div class="step-status"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analysis Output -->
+        <div id="analysisOutput" class="analysis-output hidden">
+          <div class="output-header">
+            <div class="output-header-left">
+              <div class="output-title-row">
+                <span class="output-title">Intelligence Report</span>
+                <span class="output-time" id="outputTime"></span>
+              </div>
+              <div class="output-badges">
+                <span class="enc-badge" id="encBadge">ENCRYPTED</span>
+                <span class="source-badge" id="sourceBadge">SDK</span>
+              </div>
+            </div>
+            <button class="copy-btn" id="copyBtn" title="Copy analysis">
+              <i data-lucide="copy" width="13" height="13"></i>
+              Copy
+            </button>
+          </div>
+          <div id="toolCallsInfo" class="tool-calls-info hidden"></div>
+          <div class="output-body markdown-body" id="analysisText"></div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="footer-text">PolyInsight | Powered by SolRouter</span>
+      <span class="footer-note">Prompts encrypted via Arcium RescueCipher | Processed in AWS Nitro TEE</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+
+</html>

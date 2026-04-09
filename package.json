@@ -1,0 +1,23 @@
+{
+  "name": "PolyInsight",
+  "version": "1.0.0",
+  "description": "Private Polymarket research agent powered by SolRouter encrypted inference",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "cli": "node cli.js"
+  },
+  "dependencies": {
+    "@solrouter/sdk": "latest",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "",
+  "license": "MIT"
+}
